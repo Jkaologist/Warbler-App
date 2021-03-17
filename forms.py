@@ -24,6 +24,7 @@ class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[Length(min=6)])
 
+
 class UserEditForm(FlaskForm):
     """Form for editing user details"""
 
@@ -33,4 +34,3 @@ class UserEditForm(FlaskForm):
     header_image_url = StringField('Header Image URL')
     bio = StringField('Bio')
     password = PasswordField('Password', validators=[Length(min=6)])
-

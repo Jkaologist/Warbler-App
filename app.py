@@ -101,6 +101,7 @@ def login():
 
         if user:
             do_login(user)
+            add_user_to_g()
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
 
@@ -211,19 +212,22 @@ def profile():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+    user = g.user
     form = UserEditForm(obj=g.user)
-    form.populate_obj(g.user)
 
     if form.validate_on_submit():
-        g.user.username = form.user.data
-        g.user.email = form.email.data
-        g.user.image_url = form.image_url.data
-        g.user.header_image_url = form.header_image_url.data
-        g.user.bio = form.bio.data
+        if User.authenticate(g.user.username, form.password.data):
 
-        return redirect(f'/user/{g.user.id}')
-    return render_template('users/edit.html')
+            g.user.username = form.username.data
+            g.user.email = form.email.data
+            g.user.image_url = form.image_url.data
+            g.user.header_image_url = form.header_image_url.data
+            g.user.bio = form.bio.data
+
+            db.session.commit()
+            return redirect(f'/users/{g.user.id}')
+        flash("INCORRECT PASSWORD!!!!!")
+    return render_template('users/edit.html', form=form, user=user)
 
 
 @app.route('/users/delete', methods=["POST"])
