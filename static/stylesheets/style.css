@@ -154,6 +154,12 @@ nav + .container {
 
 /* ===================== User profile */
 
+.fit-image{
+  width: 100%;
+  object-fit: cover;
+  height: 375px; /* only if you want fixed height */
+}
+
 .join-message {
   margin-top: 100px;
 }
