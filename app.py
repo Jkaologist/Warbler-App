@@ -32,7 +32,6 @@ connect_db(app)
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
-
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
 
@@ -101,7 +100,6 @@ def login():
 
         if user:
             do_login(user)
-            add_user_to_g()
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
 
@@ -212,7 +210,6 @@ def profile():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    user = g.user
     form = UserEditForm(obj=g.user)
 
     if form.validate_on_submit():
@@ -227,7 +224,7 @@ def profile():
             db.session.commit()
             return redirect(f'/users/{g.user.id}')
         flash("INCORRECT PASSWORD!!!!!")
-    return render_template('users/edit.html', form=form, user=user)
+    return render_template('users/edit.html', form=form, user=g.user)
 
 
 @app.route('/users/delete', methods=["POST"])
@@ -306,14 +303,15 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
+    following = [following.id for following in g.user.following]
+    
     if g.user:
         messages = (Message
                     .query
+                    .filter(db.or_(g.user.id == Message.user_id, Message.user_id.in_(following)))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-
         return render_template('home.html', messages=messages)
 
     else:
