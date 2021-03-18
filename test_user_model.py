@@ -7,8 +7,9 @@
 
 import os
 from unittest import TestCase
-
+from sqlalchemy.exc import IntegrityError
 from models import db, User, Message, Follows
+
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -104,8 +105,8 @@ class UserModelTestCase(TestCase):
         self.assertFalse(self.u1.is_followed_by(self.u2))
 
     def test_signup_validity(self):
-        """ Does User.signup successfully create a new user given valid credentials?
-            Does User.signup fail to create a new user if any of the validations (e.g. uniqueness, non-nullable fields) fail? """
+        """ Does User.signup successfully create a new user given valid credentials? """
+            
 
         user1 = User.signup(
             "TestingSignup",
@@ -119,6 +120,9 @@ class UserModelTestCase(TestCase):
 
         self.assertTrue(user1 in User.query.all())
 
+    def test_signup_fail(self):
+        """ Does User.signup fail to create a new user if 
+        any of the validations (e.g. uniqueness, non-nullable fields) fail? """
         user2 = User.signup(
             None,
             "InvalidUser@gmail.com",
@@ -128,10 +132,24 @@ class UserModelTestCase(TestCase):
 
         user2.id = 16000
 
-        self.assertFalse(user2 in User.query.all())
-        #   .assertRaises()?
-    # def test_authenticate(self):
-    #     """ Does User.authenticate fail to return a user when the username is invalid? """
+        with self.assertRaises(IntegrityError):
+            db.session.commit()
 
-    #     test_user = User.authenticate("testuser", "password")
-    #     self.assertTrue(test_user)
+    def test_authen_success(self):
+        """ Does User.authenticate successfully return a user """
+
+        test_user = User.authenticate("test1", "password")
+        self.assertTrue(test_user)
+
+    def test_authen_user_fail(self):
+        """ Does User.authenticate fail when username is invalid """
+
+        test_user = User.authenticate("swaggy", "password")
+        self.assertFalse(test_user)
+
+    def test_authen_password_fail(self):
+        """ Does User.authenticate fail when password is invalid """
+
+        test_user = User.authenticate("test1", "swaggy")
+        self.assertFalse(test_user)
+    
