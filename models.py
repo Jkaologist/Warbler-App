@@ -26,6 +26,24 @@ class Follows(db.Model):
         primary_key=True,
     )
 
+class Like(db.Model):
+    """Connects users and liked messages"""
+
+    __tablename__ = 'likes'
+
+    likes_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete="cascade"),
+        primary_key=True,
+    )
+
+    liked_message_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id', ondelete="cascade"),
+        primary_key=True,
+    )
+
+    
 
 class User(db.Model):
     """User in the system."""
@@ -74,6 +92,8 @@ class User(db.Model):
     )
 
     messages = db.relationship('Message', order_by='Message.timestamp.desc()')
+
+    liked_messages = db.relationship('Message', secondary='likes')
 
     followers = db.relationship(
         "User",
@@ -174,6 +194,7 @@ class Message(db.Model):
 
     user = db.relationship('User')
 
+    like_user = db.relationship('User', secondary='likes')
 
 def connect_db(app):
     """Connect this database to provided Flask app.
