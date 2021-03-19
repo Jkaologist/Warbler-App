@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, connect_db, Message, User
+from models import db, Message, User
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -42,13 +42,13 @@ class UserViewTestCase(TestCase):
         Message.query.delete()
 
         self.testuser1 = User.signup(username="testuser1",
-                                email="test1@test.com",
-                                password="password1",
-                                image_url=None)
+                                     email="test1@test.com",
+                                     password="password1",
+                                     image_url=None)
         self.testuser2 = User.signup(username="testuser2",
-                                email="test2@test.com",
-                                password="password2",
-                                image_url=None)
+                                     email="test2@test.com",
+                                     password="password2",
+                                     image_url=None)
 
         # db.session.add(testuser1, testuser2)
         db.session.commit()
@@ -75,7 +75,8 @@ class UserViewTestCase(TestCase):
             rsp = client.get("/signup")
             html = rsp.get_data(as_text=True)
             self.assertEqual(rsp.status_code, 200)
-            self.assertIn("""<h2 class="join-message">Join Warbler today.</h2>""", html)
+            self.assertIn("<h2 class='join-message'>Join Warbler today.</h2>",
+                          html)
 
     def test_signup_page_success(self):
         with app.test_client() as client:
@@ -95,11 +96,10 @@ class UserViewTestCase(TestCase):
                                                 "email": "sup@gmail.com",
                                                 "password": "password3",
                                                 "image_url": None})
-            
+
             html = rsp.get_data(as_text=True)
             self.assertEqual(rsp.status_code, 200)
             self.assertIn("Username already taken", html)
-    
 
     def test_loads_followers(self):
         with app.test_client() as client:
@@ -110,17 +110,17 @@ class UserViewTestCase(TestCase):
             html = rsp.get_data(as_text=True)
             self.assertEqual(rsp.status_code, 200)
             self.assertIn('this is followers.html', html)
-    
+
     def test_loads_followers_logged_out(self):
         with app.test_client() as client:
-            rsp = client.get(f"/users/{self.testuser2.id}/followers", follow_redirects=True)
-        
+            rsp = client.get(f"/users/{self.testuser2.id}/followers",
+                             follow_redirects=True)
+
             html = rsp.get_data(as_text=True)
             self.assertEqual(rsp.status_code, 200)
             self.assertIn('Access unauthorized.', html)
 
+    #
     # edit
     # following page
     # likes
-
-
