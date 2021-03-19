@@ -41,37 +41,37 @@ class UserViewTestCase(TestCase):
         User.query.delete()
         Message.query.delete()
 
-        testuser1 = User.signup(username="testuser1",
+        self.testuser1 = User.signup(username="testuser1",
                                 email="test1@test.com",
                                 password="password1",
                                 image_url=None)
-        testuser2 = User.signup(username="testuser2",
+        self.testuser2 = User.signup(username="testuser2",
                                 email="test2@test.com",
                                 password="password2",
                                 image_url=None)
 
-        db.session.add(testuser1, testuser2)
+        # db.session.add(testuser1, testuser2)
         db.session.commit()
 
-        self.testuser1 = User.query.all()[0]
-        self.testuser2 = User.query.all()[1]
+        # self.testuser1 = User.query.all()[0]
+        # self.testuser2 = User.query.all()[1]
 
         self.client = app.test_client()
 
     def tearDown(self):
-        res = super().tearDown()
+        # res = super().tearDown()
         db.session.rollback()
-        return res
+        # return res
 
     def test_landing_page_route(self):
-        with app.test_client() as client:
+        with self.client as client:
             rsp = client.get("/")
             html = rsp.get_data(as_text=True)
             self.assertEqual(rsp.status_code, 200)
             self.assertIn("""<div class="home-hero">""", html)
 
-    def test_signup_page_fail(self):
-        with app.test_client() as client:
+    def test_signup_page_render(self):
+        with self.client as client:
             rsp = client.get("/signup")
             html = rsp.get_data(as_text=True)
             self.assertEqual(rsp.status_code, 200)
@@ -86,3 +86,41 @@ class UserViewTestCase(TestCase):
 
             self.assertEqual(len(User.query.all()), 3)
             self.assertEqual(rsp.status_code, 302)
+
+    def test_signup_page_user_dupe(self):
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                self.assertEqual(sess.get(CURR_USER_KEY), None)
+            rsp = client.post("/signup", data={"username": "testuser1",
+                                                "email": "sup@gmail.com",
+                                                "password": "password3",
+                                                "image_url": None})
+            
+            html = rsp.get_data(as_text=True)
+            self.assertEqual(rsp.status_code, 200)
+            self.assertIn("Username already taken", html)
+    
+
+    def test_loads_followers(self):
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+            rsp = client.get(f"/users/{sess[CURR_USER_KEY]}/followers")
+
+            html = rsp.get_data(as_text=True)
+            self.assertEqual(rsp.status_code, 200)
+            self.assertIn('this is followers.html', html)
+    
+    def test_loads_followers_logged_out(self):
+        with app.test_client() as client:
+            rsp = client.get(f"/users/{self.testuser2.id}/followers", follow_redirects=True)
+        
+            html = rsp.get_data(as_text=True)
+            self.assertEqual(rsp.status_code, 200)
+            self.assertIn('Access unauthorized.', html)
+
+    # edit
+    # following page
+    # likes
+
+

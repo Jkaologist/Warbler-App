@@ -44,32 +44,24 @@ class UserModelTestCase(TestCase):
             "password",
             None
         )
-        uid1 = 1
+
         u2 = User.signup(
             "test2",
             "test2@test.com",
             "password",
             None
         )
-        uid2 = 2
-
+        
         db.session.commit()
-
-        u1 = User.query.get(uid1)
-        u2 = User.query.get(uid2)
-
         self.u1 = u1
-        self.uid1 = u1.id
-
         self.u2 = u2
-        self.uid2 = u2.id
 
         self.client = app.test_client()
 
     def tearDown(self):
-        res = super().tearDown()
+        # res = super().tearDown()
         db.session.rollback()
-        return res
+        # return res
 
     def test_user_model(self):
         """Does basic model work?"""
@@ -107,14 +99,12 @@ class UserModelTestCase(TestCase):
     def test_signup_validity(self):
         """ Does User.signup successfully create a new user given valid credentials? """
             
-
         user1 = User.signup(
             "TestingSignup",
             "TestingUserSignup@gmail.com",
             "password",
             None,
         )
-        user1.id = 15000
 
         db.session.commit()
 
@@ -129,8 +119,6 @@ class UserModelTestCase(TestCase):
             "password",
             None,
         )
-
-        user2.id = 16000
 
         with self.assertRaises(IntegrityError):
             db.session.commit()

@@ -39,7 +39,6 @@ class MessageModelTestCase(TestCase):
         db.create_all()
 
         msg = Message(
-            id=1,
             text="yoyo",
             timestamp=datetime.utcnow()
         )
